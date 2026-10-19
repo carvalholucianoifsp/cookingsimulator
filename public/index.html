@@ -179,7 +179,7 @@ let ONLINE=false;
 const LS=()=>{try{return JSON.parse(localStorage.getItem('gx_rank')||'[]')}catch(e){return[]}},sv=r=>{try{localStorage.setItem('gx_rank',JSON.stringify(r))}catch(e){}};
 async function api(m,b,h){const r=await fetch('/api/rank',{method:m,headers:{'content-type':'application/json',...h},body:b?JSON.stringify(b):undefined,signal:AbortSignal.timeout(4000)});if(!r.ok)throw 0;return r.json()}
 async function ld(){try{const r=await api('GET');if(Array.isArray(r)){ONLINE=true;return r}}catch(e){}ONLINE=false;return LS()}
-async function add(ent){if(ONLINE){try{return (await api('POST',ent)).id}catch(e){ONLINE=false}}ent.id=Date.now();const a=LS();a.push(ent);a.sort((x,y)=>y.l-x.l);sv(a.slice(0,100));return ent.id}
+async function add(ent){try{const r=await api('POST',ent);if(r&&r.id){ONLINE=true;return r.id}}catch(e){}ONLINE=false;ent.id=Date.now();const a=LS();a.push(ent);a.sort((x,y)=>y.l-x.l);sv(a.slice(0,100));return ent.id}
 const hs=s=>{let h=5381;for(const c of s)h=(h*33^c.charCodeAt(0))>>>0;return h};
 async function resetRank(){const p=prompt('Senha para resetar o ranking:');if(p===null)return;if(ONLINE){try{await api('DELETE',null,{'x-password':p})}catch(e){alert('Senha incorreta ou servidor indisponível.');return}}else{if(hs(p)!==2225461199){alert('Senha incorreta.');return}sv([])}showRank(BACK)}
 function rankHTML(l,me,n){const r=[...l].sort((a,b)=>b.l-a.l).slice(0,n);return r.length?`<table class="rk">${r.map((e,i)=>`<tr class="${e.id===me?'me':''}"><td>${['🥇','🥈','🥉'][i]||(i+1)+'º'}</td><td>${esc(e.n)}</td><td>${e.m} min</td><td>${R(e.l)}</td></tr>`).join('')}</table>`:'<p>Ainda não há partidas. Seja o primeiro! 🚀</p>'}
